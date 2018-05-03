@@ -1,0 +1,25 @@
+{
+  "name": "xoox-transform",
+  "version": "0.0.0",
+  "main": "index",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pemrouz/xoox-transform.git"
+  },
+  "scripts": {
+    "build": "npm run rollup && npm run minify && npm run gzip",
+    "rollup": "rollup -c",
+    "minify": "uglifyjs ./transform.bundle.js -m -c keep_fargs=false > ./transform.min.js",
+    "gzip": "gzip -c ./transform.min.js > ./transform.min.js.gz",
+    "version": "npm run build && git add -A",
+    "postversion": "git push && git push --tags"
+  },
+  "author": "pemrouz (https://github.com/pemrouz)",
+  "license": "pemrouz.mit-license.org",
+  "devDependencies": {
+    "rollup": "^0.58.2",
+    "rollup-plugin-commonjs": "^9.1.3",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "uglify-es": "^3.3.10"
+  }
+}
