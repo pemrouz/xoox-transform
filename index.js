@@ -40,7 +40,9 @@ const then = (thing, proc) =>
 
 // TODO: add stops method, as itr.return doesn't set done (which it probably should)?
 const stop = itr => {
-  itr.stop = () => !itr.done && (itr.done = true) && itr.return && itr.return()
+  itr.stopped = new Promise(resolve => {
+    itr.stop = () => !itr.done && (itr.done = true) && itr.return && resolve(itr.return())
+  })
   return itr
 }
 
