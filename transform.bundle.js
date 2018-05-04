@@ -10,7 +10,7 @@ var x = (function () {
   , out = (inp[Symbol.species] || inp.constructor)()
   , itr = stop((inp[Symbol.asyncIterator] || inp[Symbol.iterator]).call(inp))
   ) => (...fns) => step(
-      compose(...fns)(next, inp, itr)
+      compose(...fns)(next, itr)
     , out
     , itr
     );
@@ -47,7 +47,9 @@ var x = (function () {
 
   // TODO: add stops method, as itr.return doesn't set done (which it probably should)?
   const stop = itr => {
-    itr.stop = () => !itr.done && (itr.done = true) && itr.return && itr.return();
+    itr.stopped = new Promise(resolve => {
+      itr.stop = () => !itr.done && (itr.done = true) && itr.return && resolve(itr.return());
+    });
     return itr
   };
 
