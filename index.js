@@ -3,7 +3,7 @@ module.exports = (
 , out = (inp[Symbol.species] || inp.constructor)()
 , itr = stop((inp[Symbol.asyncIterator] || inp[Symbol.iterator]).call(inp))
 ) => (...fns) => step(
-    require('./compose')(...fns)(next, inp, itr)
+    require('./compose')(...fns)(next, itr)
   , out
   , itr
   )
