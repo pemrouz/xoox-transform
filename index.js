@@ -18,7 +18,7 @@ const step = (
   while (!rec.done) {
     out = pipeline(out, rec.value)
     if (itr.done) return out
-    if (out.then && !out.next) return out.then(out => step(pipeline, out, itr))
+    if (out && out.then && !out.next) return out.then(out => step(pipeline, out, itr))
     rec = itr.next()
     if (rec.then) return rec.then(rec => step(pipeline, out, itr, rec))
   }
@@ -28,7 +28,8 @@ const step = (
 // TODO: default receivers which could be set
 // standardise this as Symbol.send/receive/call/reduce?
 const next = (out, v) => 
-  out.next    ? (then(out.next(v), () => out)) // Generators, Channels, Observables
+  out == null ? out
+: out.next    ? (then(out.next(v), () => out)) // Generators, Channels, Observables
 : out.call    ? (out(v), out)                  // Functions
 : out.push    ? (out.push(v), out)             // Array
 : out.concat  ? (out.concat(v))                // Strings
