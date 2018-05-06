@@ -36,7 +36,7 @@ const next = (out, v) =>
               : (out[v[0]] = v[1], out)        // Object
 
 const then = (thing, proc) => 
-  thing.next || !thing.then ? proc(thing) : thing.then(proc) 
+  thing && thing.then && !thing.next ? thing.then(proc) : proc(thing)
 
 // TODO: add stops method, as itr.return doesn't set done (which it probably should)?
 const stop = itr => {
