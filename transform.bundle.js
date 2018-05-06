@@ -25,7 +25,7 @@ var x = (function () {
     while (!rec.done) {
       out = pipeline(out, rec.value);
       if (itr.done) return out
-      if (out.then && !out.next) return out.then(out => step(pipeline, out, itr))
+      if (out && out.then && !out.next) return out.then(out => step(pipeline, out, itr))
       rec = itr.next();
       if (rec.then) return rec.then(rec => step(pipeline, out, itr, rec))
     }
@@ -35,7 +35,8 @@ var x = (function () {
   // TODO: default receivers which could be set
   // standardise this as Symbol.send/receive/call/reduce?
   const next = (out, v) => 
-    out.next    ? (then(out.next(v), () => out)) // Generators, Channels, Observables
+    out == null ? out
+  : out.next    ? (then(out.next(v), () => out)) // Generators, Channels, Observables
   : out.call    ? (out(v), out)                  // Functions
   : out.push    ? (out.push(v), out)             // Array
   : out.concat  ? (out.concat(v))                // Strings
@@ -43,7 +44,7 @@ var x = (function () {
                 : (out[v[0]] = v[1], out);        // Object
 
   const then = (thing, proc) => 
-    thing.next || !thing.then ? proc(thing) : thing.then(proc); 
+    thing && thing.then && !thing.next ? thing.then(proc) : proc(thing);
 
   // TODO: add stops method, as itr.return doesn't set done (which it probably should)?
   const stop = itr => {
@@ -59,10 +60,8 @@ var x = (function () {
     for (entry of Object.entries(this)) yield entry; 
   };
 
-  Function.prototype[Symbol.iterator] = function(){ 
-    return { 
-      next: () => ({ value: this(), done: false })
-    }
+  Function.prototype[Symbol.iterator] = function*(){ 
+    while (true) yield this();
   };
 
   Number.prototype[Symbol.iterator] = function*(value = 0){
