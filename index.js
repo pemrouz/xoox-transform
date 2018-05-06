@@ -52,10 +52,8 @@ Object.prototype[Symbol.iterator] = function*(){
   for (entry of Object.entries(this)) yield entry 
 }
 
-Function.prototype[Symbol.iterator] = function(){ 
-  return { 
-    next: () => ({ value: this(), done: false })
-  }
+Function.prototype[Symbol.iterator] = function*(){ 
+  while (true) yield this()
 }
 
 Number.prototype[Symbol.iterator] = function*(value = 0){
