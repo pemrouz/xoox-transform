@@ -1,16 +1,16 @@
 {
-  "name": "xoox-transform",
+  "name": "xoox-pipe",
   "version": "1.1.0",
   "main": "index",
   "repository": {
     "type": "git",
-    "url": "git://github.com/pemrouz/xoox-transform.git"
+    "url": "git://github.com/pemrouz/xoox-pipe.git"
   },
   "scripts": {
     "build": "npm run rollup && npm run minify && npm run gzip",
     "rollup": "rollup -c",
-    "minify": "uglifyjs ./transform.bundle.js -m -c keep_fargs=false > ./transform.min.js",
-    "gzip": "gzip -c ./transform.min.js > ./transform.min.js.gz",
+    "minify": "uglifyjs ./pipe.bundle.js -m -c keep_fargs=false > ./pipe.min.js",
+    "gzip": "gzip -c ./pipe.min.js > ./pipe.min.js.gz",
     "version": "npm run build && git add -A",
     "postversion": "git push && git push --tags"
   },

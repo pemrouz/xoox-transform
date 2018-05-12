@@ -1,43 +1,25 @@
-module.exports = (
-  inp
-, out = (inp[Symbol.species] || inp.constructor)()
-, itr = stop((inp[Symbol.asyncIterator] || inp[Symbol.iterator]).call(inp))
-) => (...fns) => step(
-    require('./compose')(...fns)(next, itr)
-  , out
-  , itr
+module.exports = (inp, ...fns) => {
+  const itr = stop((inp[Symbol.asyncIterator] || inp[Symbol.iterator] || from(inp)).call(inp))
+  return step(
+    itr
+  , require('./compose')(...fns)((value => itr.out = value), itr)
   )
-
-const step = (
-  pipeline
-, out
-, itr
-, rec = itr.next()
-) => {
-  if (rec.then) return rec.then(rec => step(pipeline, out, itr, rec))
-  while (!rec.done) {
-    out = pipeline(out, rec.value)
-    if (itr.done) return out
-    if (out && out.then && !out.next) return out.then(out => step(pipeline, out, itr))
-    rec = itr.next()
-    if (rec.then) return rec.then(rec => step(pipeline, out, itr, rec))
-  }
-  return out
 }
 
-// TODO: default receivers which could be set
-// standardise this as Symbol.send/receive/call/reduce?
-const next = (out, v) => 
-  out == null ? out
-: out.next    ? (then(out.next(v), () => out)) // Generators, Channels, Observables
-: out.call    ? (out(v), out)                  // Functions
-: out.push    ? (out.push(v), out)             // Array
-: out.concat  ? (out.concat(v))                // Strings
-: out.toFixed ? (out += v)                     // Number
-              : (out[v[0]] = v[1], out)        // Object
-
-const then = (thing, proc) => 
-  thing && thing.then && !thing.next ? thing.then(proc) : proc(thing)
+const step = (
+  itr
+, pipeline
+, rec = itr.next()
+) => {
+  if (rec.then) return rec.then(rec => step(itr, pipeline, rec))
+  while (!rec.done && !itr.done) {
+    const out = pipeline(rec.value)
+    if (out && out.then && !out.next) return out.then(out => step(itr, pipeline))
+    rec = itr.next()
+    if (rec.then) return rec.then(rec => step(itr, pipeline, rec))
+  }
+  return itr.out
+}
 
 // TODO: add stops method, as itr.return doesn't set done (which it probably should)?
 const stop = itr => {
@@ -47,16 +29,8 @@ const stop = itr => {
   return itr
 }
 
-// TODO: These can be set by default instead of passing in 
-// to make object-to-object transformations for example "just work"
-Object.prototype[Symbol.iterator] = function*(){ 
-  for (entry of Object.entries(this)) yield entry 
-}
-
-Function.prototype[Symbol.iterator] = function*(){ 
-  while (true) yield this()
-}
-
-Number.prototype[Symbol.iterator] = function*(value = 0){
-  while (value++ < this) yield value
-}
+const from = thing => 
+  thing.constructor == Object   ? function*(){ for (entry of Object.entries(this)) yield entry }
+: thing.constructor == Function ? function*(){ while (true) yield this() }
+: thing.constructor == Number   ? function*(value = 0){ while (value++ < this) yield value }
+                                : 0
